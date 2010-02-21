@@ -1,0 +1,7 @@
+#comic-updater-toolbar-button {
+  list-style-image: url("chrome://ComicUpdater/skin/btn_large.png");
+}
+
+toolbar[iconsize="small"] #comic-updater-toolbar-button {
+  list-style-image: url("chrome://ComicUpdater/skin/btn_small.png");
+}

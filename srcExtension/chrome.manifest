@@ -1,0 +1,5 @@
+content ComicUpdater chrome/ComicUpdater/content/
+skin ComicUpdater classic/1.0 chrome/ComicUpdater/skin/
+locale ComicUpdater en-US chrome/ComicUpdater/locale/en-US/
+overlay chrome://browser/content/browser.xul chrome://ComicUpdater/content/button.xul 
+style	chrome://global/content/customizeToolbar.xul	chrome://ComicUpdater/skin/skin.css
