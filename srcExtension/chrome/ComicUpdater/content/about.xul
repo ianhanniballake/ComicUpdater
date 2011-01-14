@@ -8,7 +8,7 @@
 	<groupbox align="center" flex="1">
 		<vbox align="center">
 			<description id="title" value="ComicUpdater" />
-			<description id="version" value="version: 0.1.0" />
+			<description id="version" value="version: 0.4" />
 			<description id="created" value="created by" />
 			<description id="author" value="Ian Lake" />
 		</vbox>

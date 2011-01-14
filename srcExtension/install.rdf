@@ -6,12 +6,12 @@
         <em:iconURL/>
         <em:id>{0a01c4b6-b839-4dfb-910e-d1ceef5c5b79}</em:id>
         <em:name>ComicUpdater</em:name>
-        <em:version>0.3</em:version>
+        <em:version>0.4</em:version>
         <em:type>2</em:type>
         <em:targetApplication>
             <RDF:Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-                <em:maxVersion>3.6.*</em:maxVersion>
+                <em:maxVersion>4.0.*</em:maxVersion>
                 <em:minVersion>3.0</em:minVersion>
             </RDF:Description>
         </em:targetApplication>

@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <?xml-stylesheet href="chrome://ComicUpdater/skin/skin.css" type="text/css"?>
-<overlay id="comic-updater-button-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <script src="comicUpdater.js" />
-    
-    <toolbarpalette id="BrowserToolbarPalette">
-        <toolbarbutton id="comic-updater-toolbar-button" class="toolbarbutton-1" label="Update Comic Bookmark" tooltiptext="Update Comic Bookmark" oncommand="comicUpdater.run()"/>
-    </toolbarpalette>
+<overlay
+	id="comic-updater-button-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script
+		src="comicUpdater.js" />
+	<toolbarpalette
+		id="BrowserToolbarPalette">
+		<toolbarbutton
+			id="comic-updater-toolbar-button"
+			class="toolbarbutton-1"
+			label="Update Comic Bookmark"
+			tooltiptext="Update Comic Bookmark"
+			oncommand="comicUpdater.run()" />
+	</toolbarpalette>
 </overlay>
