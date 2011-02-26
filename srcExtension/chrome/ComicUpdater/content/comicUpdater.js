@@ -9,12 +9,13 @@ var comicUpdater = function () {
         run : function () {
             var options = historyService.getNewQueryOptions();
             var query = historyService.getNewQuery();
-            var bookmarkMenuFolder = bookmarksService.bookmarksMenuFolder;
             
             var folderList = new Array();
             var maxMatchingChars = -1;
             var closestBookmarkList = new Array();
-            folderList.push(bookmarkMenuFolder);
+            folderList.push(bookmarksService.bookmarksMenuFolder);
+            folderList.push(bookmarksService.unfiledBookmarksFolder);
+            folderList.push(bookmarksService.toolbarFolder);
             
             while (folderList.length > 0)
             {
