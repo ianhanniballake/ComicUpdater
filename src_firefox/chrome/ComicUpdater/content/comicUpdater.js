@@ -62,11 +62,13 @@ var comicUpdater = function()
 			{
 				var tagService = Components.classes["@mozilla.org/browser/tagging-service;1"]
 						.getService(Components.interfaces.nsITaggingService);
-				var oldTags = tagService.getTagsForURI(myURI, {});
+				var oldURI = ios.newURI(closestBookmarkList[0].uri, null, null);
+				var oldTags = tagService.getTagsForURI(oldURI, {});
 				var newURI = ios.newURI(content.document.URL, null, null);
 				bookmarksService.changeBookmarkURI(
 						closestBookmarkList[0].itemId, newURI);
-				tagService.tagURI(closestBookmarkList[0].uri, oldTags);
+				tagService.untagURI(oldURI, oldTags);
+				tagService.tagURI(newURI, oldTags);
 			}
 			else
 			{
