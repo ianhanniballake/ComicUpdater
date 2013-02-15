@@ -38,8 +38,8 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   var folderList = new Array();
   var maxMatchingChars = -1;
   var closestBookmarkList = new Array();
-  for ( var i = 0; i < bookmarkTreeNodes.length; i++){
-    folderList.push(bookmarkTreeNodes[i]);
+  for ( var i = 0; i < bookmarkTreeNode.length; i++) {
+    folderList.push(bookmarkTreeNode[i]);
   }
   while (folderList.length > 0)
   {
