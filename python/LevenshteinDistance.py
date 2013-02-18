@@ -2,6 +2,28 @@
 File: LevenshteinDistance.py
 Author: Me
 Description: 
+
+
+A module to test a matching algorithm to compute the number of matching
+characters between two strings based on the idea of levenshtein distance of two
+string.
+
+
+    def LevenshteinDistance(str1, i, len1, str2, j, len2):
+        if(len1 == 0): return len2
+        if(len2 == 0): return len1
+        cost = 0
+        if(str1[i] != str2[j]): cost = 1
+
+        dist = min(
+            LevenshteinDistance(str1, i+1,len1-1, str2,j,len2)+1, 
+            LevenshteinDistance(str1,i,len1,str2,j+1,len2-1)+1,
+            LevenshteinDistance(str1,i+1,len1-1,str2,j+1,len2-1)+cost)
+        return dist
+
+todo: documentation
+todo: unit test cases to consistently run and test different function
+implementations
 '''
 import collections
 import functools
@@ -32,17 +54,6 @@ class memoized(object):
       '''Support instance methods.'''
       return functools.partial(self.__call__, obj)
 
-def LevenshteinDistance(str1, i, len1, str2, j, len2):
-    if(len1 == 0): return len2
-    if(len2 == 0): return len1
-    cost = 0
-    if(str1[i] != str2[j]): cost = 1
-
-    dist = min(
-        LevenshteinDistance(str1, i+1,len1-1, str2,j,len2)+1, 
-        LevenshteinDistance(str1,i,len1,str2,j+1,len2-1)+1,
-        LevenshteinDistance(str1,i+1,len1-1,str2,j+1,len2-1)+cost)
-    return dist
 
 
 
