@@ -65,6 +65,7 @@ def editdistance(str1, str2):
 
     return dist
 
+@memoized
 def match(str1, str2):
     # trivial solutions
     if(len(str1) == 0): return 0  
@@ -83,6 +84,7 @@ def match(str1, str2):
 
     return dist
 
+@memoized
 def match2(str1, str2):
     # trivial solutions
     if(len(str1) == 0): return 0  
@@ -101,20 +103,24 @@ def match2(str1, str2):
 def main():
     print(editdistance('aaxxxxxxxxxxxxxxbbyycc',
                        'aasssbbtttttttttttttcc'))
-    #print(memoizedmatch('aaxxxxxxxxxxxxxxbbyycc',
-                       #'aasssbbtttttttttttttcc'))
-    #print("chache size: " + len(memoizedmatch.cache))
-    #memoizedmatch2 = memoized(match2)
-    #print(match2('aaxxxxxxxxxxxxxxbbyycc',
-                       #'aasssbbtttttttttttttcc'))
+    print(match('aaxxxxxxxxxxxxxxbbyycc',
+                       'aasssbbtttttttttttttcc'))
+    print("chache size: " + str(len(match.cache)))
+    print(match2('aaxxxxxxxxxxxxxxbbyycc',
+                       'aasssbbtttttttttttttcc'))
+    print("chache size: " + str(len(match2.cache)))
 
-    #print(match('aaxxxxxxxxxxxxxxbbyyycc',
-                       #'aayyybbtttttttttttttcc'))
-    #print(match2('aaxxxxxxxxxxxxxxbbyyycc',
-                       #'aayyybbtttttttttttttcc'))
+    match.cache = {}
+    print(match('aaxxxxxxxxxxxxxxbbyyycc',
+                       'aayyybbtttttttttttttcc'))
+    print("chache size: " + str(len(match.cache)))
+    match2.cache = {}
+    print(match2('aaxxxxxxxxxxxxxxbbyyycc',
+                       'aayyybbtttttttttttttcc'))
+    print("chache size: " + str(len(match2.cache)))
 
 if __name__ == '__main__':
-    memoizedmatch = memoized(match)
+    main()
 
 
 
