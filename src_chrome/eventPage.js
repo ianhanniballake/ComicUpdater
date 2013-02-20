@@ -50,6 +50,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       if (node.url)
       { // node is a bookmark
         var numMatchingChars = matchPrefix(node.url, tab.url);
+
         if (numMatchingChars > maxMatchingChars)
         {
           closestBookmarkList = new Array();
@@ -151,3 +152,28 @@ function matchTillEnd(string1, string2){
 
 
 
+/*
+ * Todo: write doc
+ */
+var cache = {};
+function fuzzyMatch(str1, str2){
+    var key = [str1,str2].join(',');
+    if(cache[key] != undefined)  return cache[key];
+
+    // trivial solutions
+    if(str1.length == 0) return 0;
+    if(str2.length == 0) return 0;
+    if(str1 == str2) return str1.length;
+
+    var match = 0;
+    // recursive call based on first character
+    if(str1[0] == str2[0]){
+        match = 1 + matchADS(str1.substr(1),str2.substr(1));
+    } else{
+        match = Math.max(matchADS(str1.substr(1), str2.substr(1)),
+            matchADS(str1, str2.substr(1)),
+            matchADS(str1.substr(1), str2));
+    }
+    cache[key] = match;
+    return match;
+}
