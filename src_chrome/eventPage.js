@@ -48,17 +48,8 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
     {
       var node = rootNode.children[i];
       if (node.url)
-      {
-        var numMatchingChars = 0;
-        for ( var j = 1; j < node.url.length
-            && j < tab.url.length; j++)
-        {
-          if (node.url.substr(0, j) == tab.url
-              .substr(0, j))
-            numMatchingChars = j;
-          else
-            break;
-        }
+      { // node is a bookmark
+        var numMatchingChars = matchPrefix(node.url, tab.url);
         if (numMatchingChars > maxMatchingChars)
         {
           closestBookmarkList = new Array();
@@ -69,8 +60,10 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
           closestBookmarkList.push(node);
         }
       }
-      else
+      else{
+        // Node is a bookmark folder
         folderList.push(node);
+      }
     }
   }
   if (maxMatchingChars < 10)
@@ -104,4 +97,57 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   }
 
 }
+
+/* Match two string with each other.
+ *
+ * Both string are compared character by character starting from the first one.
+ * The comparison stops the moment a character differs.
+ *
+ * @param {string} string1
+ * @param {string} string2
+ *
+ * @return {int} Returns the number of initial characters of both strings are
+ * equal.
+ *
+ */
+function matchPrefix(string1, string2){
+  var numMatchingChars = 0;
+  for ( var j = 1; j < string1.length
+      && j < string2.length; j++)
+  {
+    if (string1.substr(0, j) == string2.substr(0, j))
+      numMatchingChars = j;
+    else
+      break;
+  }
+  return numMatchingChars;
+}
+
+
+/* Match two string with each other.
+ *
+ * Both string are compared character by character starting from the first one.
+ * till the end of the shortest string.
+ *
+ * @param {string} string1
+ * @param {string} string2
+ *
+ * @return {int} Returns the number of matching characters
+ *
+ */
+function matchTillEnd(string1, string2){
+  var numMatchingChars = 0;
+  var i1 = 0;
+  var i2 = 0;
+  while( i1 < string1.length && i2 < string2.length){
+    if (string1[i1] == string2[i2]){
+      numMatchingChars++;
+    }
+    i1++;
+    i2++;
+  }
+  return numMatchingChars;
+}
+
+
 
