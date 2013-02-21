@@ -152,10 +152,29 @@ function matchTillEnd(string1, string2){
 
 
 
-/*
- * Todo: write doc
+/* Fuzzy character matching algorithm inspired by the Levenshtein Distance
+ *
+ * there exists a transformation that would transform string 1 into string 2 by
+ * sequentially applying one of the following 4 operations on the characters of string 1:
+ *   + matching: leave a character unchanged,
+ *   + substitution: substitute a character with a different one,
+ *   + addition: add a new character
+ *   + deletion: remove a character
+ * This transformation is however not unique. The trivial transformation would
+ * for example delete all characters of string 1 and then add those of string
+ * 2.
+ *
+ * This recursive algorithm will implicitly construct the transformation from
+ * string 1 to string 2 that maximizes the number of matching operations and
+ * count them.
+ *
+ * @param {String} str1 string 1
+ * @param {String} str2 string 2
+ *
+ * @return {int} The number of matching characters between string 1 and string
+ * 2 while allowing character substitution, addition and deletion.
  */
-var cache = {};
+var cache = {}; //fuzzyMatch cache to speed up recursive evaluation
 function fuzzyMatch(str1, str2){
     var key = [str1,str2].join(',');
     if(cache[key] != undefined)  return cache[key];
