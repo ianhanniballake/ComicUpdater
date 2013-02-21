@@ -162,7 +162,7 @@ function matchTillEnd(string1, string2){
  * @return {int} The number of matching characters between string 1 and string
  * 2 while allowing character substitution, addition and deletion.
  */
-var cache = {}; //fuzzyMatch cache to speed up recursive evaluation
+var cache = {length:0}; //fuzzyMatch cache to speed up recursive evaluation
 function fuzzyMatch(str1, str2){
     var key = [str1,str2].join(',');
     if(cache[key] != undefined)  return cache[key];
@@ -182,5 +182,6 @@ function fuzzyMatch(str1, str2){
             fuzzyMatch(str1.substr(1), str2));
     }
     cache[key] = match;
+    cache.length = cache.length + 1;
     return match;
 }
