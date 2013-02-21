@@ -139,7 +139,6 @@ function matchTillEnd(string1, string2){
   return numMatchingChars;
 }
 
-
 /* Fuzzy character matching algorithm inspired by the Levenshtein Distance
  *
  * there exists a transformation that would transform string 1 into string 2 by
@@ -162,8 +161,34 @@ function matchTillEnd(string1, string2){
  * @return {int} The number of matching characters between string 1 and string
  * 2 while allowing character substitution, addition and deletion.
  */
-var cache = {length:0}; //fuzzyMatch cache to speed up recursive evaluation
 function fuzzyMatch(str1, str2){
+  var cache = {length:0}; // empty cache
+  return cachedFuzzyMatch(str1, str2, cache);
+}
+
+/* cached recursive Fuzzy character matching algorithm inspired by the Levenshtein Distance
+ *
+ * there exists a transformation that would transform string 1 into string 2 by
+ * sequentially applying one of the following 4 operations on the characters of string 1:
+ *   + matching: leave a character unchanged,
+ *   + substitution: substitute a character with a different one,
+ *   + addition: add a new character
+ *   + deletion: remove a character
+ * This transformation is however not unique. The trivial transformation would
+ * for example delete all characters of string 1 and then add those of string
+ * 2.
+ *
+ * This recursive algorithm will implicitly construct the transformation from
+ * string 1 to string 2 that maximizes the number of matching operations and
+ * count them.
+ *
+ * @param {String} str1 string 1
+ * @param {String} str2 string 2
+ *
+ * @return {int} The number of matching characters between string 1 and string
+ * 2 while allowing character substitution, addition and deletion.
+ */
+function cachedFuzzyMatch(str1, str2,cache){
     var key = [str1,str2].join(',');
     if(cache[key] != undefined)  return cache[key];
 
@@ -175,11 +200,11 @@ function fuzzyMatch(str1, str2){
     var match = 0;
     // recursive call based on first character
     if(str1[0] == str2[0]){
-        match = 1 + fuzzyMatch(str1.substr(1),str2.substr(1));
+        match = 1 + cachedFuzzyMatch(str1.substr(1),str2.substr(1),cache);
     } else{
-        match = Math.max(fuzzyMatch(str1.substr(1), str2.substr(1)),
-            fuzzyMatch(str1, str2.substr(1)),
-            fuzzyMatch(str1.substr(1), str2));
+        match = Math.max(cachedFuzzyMatch(str1.substr(1), str2.substr(1),cache),
+            cachedFuzzyMatch(str1, str2.substr(1), cache),
+            cachedFuzzyMatch(str1.substr(1), str2, cache));
     }
     cache[key] = match;
     cache.length = cache.length + 1;
