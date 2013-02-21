@@ -49,7 +49,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var node = rootNode.children[i];
       if (node.url)
       { // node is a bookmark
-        var numMatchingChars = matchPrefix(node.url, tab.url);
+        var numMatchingChars = fuzzyMatch(node.url, tab.url);
 
         if (numMatchingChars > maxMatchingChars)
         {
@@ -168,11 +168,11 @@ function fuzzyMatch(str1, str2){
     var match = 0;
     // recursive call based on first character
     if(str1[0] == str2[0]){
-        match = 1 + matchADS(str1.substr(1),str2.substr(1));
+        match = 1 + fuzzyMatch(str1.substr(1),str2.substr(1));
     } else{
-        match = Math.max(matchADS(str1.substr(1), str2.substr(1)),
-            matchADS(str1, str2.substr(1)),
-            matchADS(str1.substr(1), str2));
+        match = Math.max(fuzzyMatch(str1.substr(1), str2.substr(1)),
+            fuzzyMatch(str1, str2.substr(1)),
+            fuzzyMatch(str1.substr(1), str2));
     }
     cache[key] = match;
     return match;
