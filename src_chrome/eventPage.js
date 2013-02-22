@@ -81,6 +81,9 @@ chrome.browserAction.onClicked
  * @param {String} bookmarkTitle the title of the bookmark that got updated
  * @param {String} oldBookmarkUrl the old bookmark url
  * @param {String} newBookmarkUrl the new bookmark url
+ *
+ * see also:
+ * http://developer.chrome.com/extensions/notifications.html
  */
 function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   //for now just mention the bookmark title, leave old and new url out.
