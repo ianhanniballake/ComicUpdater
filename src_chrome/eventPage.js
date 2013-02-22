@@ -48,9 +48,13 @@ chrome.browserAction.onClicked
 						else
 							if (closestBookmarkList.length == 1)
 							{
-								chrome.bookmarks.update(
-										String(closestBookmarkList[0].id),
-										{ url : tab.url });
+                var title = closestBookmarkList[0].title;
+                var oldUrl = closestBookmarkList[0].url;
+                var newUrl = tab.url;
+                chrome.bookmarks.update(
+                    String(closestBookmarkList[0].id),
+                    { url : newUrl });
+                showUpdateNotification(title,oldUrl,newUrl);
 							}
 							else
 							{
@@ -66,3 +70,35 @@ chrome.browserAction.onClicked
 							}
 					});
 		});
+
+/*
+ * Notify the user of the bookmark that got updated.
+ *
+ * The notification will automatically disappear after 3 second so it is a real
+ * notification that demands no action from the user interaction of the user is
+ * required.
+ *
+ * @param {String} bookmarkTitle the title of the bookmark that got updated
+ * @param {String} oldBookmarkUrl the old bookmark url
+ * @param {String} newBookmarkUrl the new bookmark url
+ *
+ * see also:
+ * http://developer.chrome.com/extensions/notifications.html
+ */
+function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
+  //for now just mention the bookmark title, leave old and new url out.
+  var body = "Update " +
+    "\"" + bookmarkTitle + "\"";
+
+  var notification = webkitNotifications.createNotification(
+    '',  //don't use an icon
+    'ComicUpdater',  // notification title
+    body  // notification body text
+  );
+  notification.show();
+
+  //automatically close the notification after 3 seconds
+  //todo: allow timeout to be set in a settings page
+  window.setTimeout(function (){notification.cancel();},3000);
+}
+
