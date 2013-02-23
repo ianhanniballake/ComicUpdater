@@ -12,7 +12,8 @@
     "128": "icon128.png"
   },
   "permissions": [
-    "bookmarks"
+    "bookmarks",
+    "notifications"
   ],
   "browser_action": {
       "default_title": "Update Closest Bookmark",
