@@ -79,16 +79,23 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
       chrome.bookmarks.update(
           String(closestBookmarkList[0].id),
-          { url : newUrl });
-      showUndoNotification(closestBookmarkList[0], oldUrl);
+          { url : newUrl },
+          function callback(bookmarkTreeNode){
+            //log  action
+            console.group('update bookmarkTreeNode');
+            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
+            console.log('old bookmark %O',closestBookmarkList[0]);
+            console.log('from')
+            console.log('  %s', oldUrl)
+            console.log("to");
+            console.log('  %s', newUrl);
+            console.log('%O', bookmarkTreeNode);
+            console.groupEnd();
 
-      //log  action
-      console.group('update bookmarkTreeNode');
-      console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
-      console.log('%O',closestBookmarkList[0]);
-      console.log("to");
-      console.log('  %s', newUrl);
-      console.groupEnd();
+            //present undo notification
+            showUndoNotification(bookmarkTreeNode, oldUrl);
+          }
+      );
   } else {
       var nodeList = "";
       for ( var h = 0; h < closestBookmarkList.length; h++)
