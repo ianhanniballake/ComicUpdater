@@ -74,6 +74,10 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var title = closestBookmarkList[0].title;
       var oldUrl = closestBookmarkList[0].url;
       var newUrl = tab.url;
+      console.log('update bookmarkTreeNode');
+      console.log(closestBookmarkList);
+      console.log("to");
+      console.log('  ' + newUrl);
       chrome.bookmarks.update(
           String(closestBookmarkList[0].id),
           { url : newUrl });
