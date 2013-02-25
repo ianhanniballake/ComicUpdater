@@ -299,11 +299,24 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
     console.log("back to");
     console.log("  %s",  oldBookmarkUrl);
     console.groupEnd();
+
+    //inform user of the undo action
+    var body = 'Rolled back update of "' + bookmarkTreeNode.title + '"';
+    var notification2 = webkitNotifications.createNotification(
+      '',
+      'Update rolled back',
+      body
+    );
+    notification2.show();
+
+    //automatically close the notification after 5 seconds
+    //todo: allow timeout to be set in a settings page
+    window.setTimeout(function (){notification2.cancel();},5000);
   };
 
   notification.show();
 
-  //automatically close the notification after 3 seconds
+  //automatically close the notification after 5 seconds
   //todo: allow timeout to be set in a settings page
   window.setTimeout(function (){notification.cancel();},5000);
 }
