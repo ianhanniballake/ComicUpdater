@@ -288,6 +288,9 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
 
   //rollback the update if the notification is clicked
   notification.onclick = function(){
+    //immediately close the current notification
+    this.cancel();
+
     //undo the bookmark update
     chrome.bookmarks.update(
         String(bookmarkTreeNode.id),
