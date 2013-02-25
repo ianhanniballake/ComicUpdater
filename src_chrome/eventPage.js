@@ -270,7 +270,7 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
     body  // notification body text
   );
 
-  notification.onclick(function(){
+  notification.onclick = function(){
     //undo the bookmark update
     chrome.bookmarks.update(
         String(bookmarkTreeNode.id),
@@ -279,7 +279,7 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
     //log  rollback action
     console.log("Rolled \"" + bookmarkTreeNode.title+"\" back to");
     console.log("  " + oldBookmarkUrl);
-  });
+  };
 
   notification.show();
 
