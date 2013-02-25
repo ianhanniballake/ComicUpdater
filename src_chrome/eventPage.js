@@ -74,14 +74,21 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var title = closestBookmarkList[0].title;
       var oldUrl = closestBookmarkList[0].url;
       var newUrl = tab.url;
-      console.log('update bookmarkTreeNode');
-      console.log(closestBookmarkList);
-      console.log("to");
-      console.log('  ' + newUrl);
+
+
+
       chrome.bookmarks.update(
           String(closestBookmarkList[0].id),
           { url : newUrl });
       showUndoNotification(closestBookmarkList[0], oldUrl);
+
+      //log  action
+      console.group('update bookmarkTreeNode');
+      console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
+      console.log('%O',closestBookmarkList[0]);
+      console.log("to");
+      console.log('  %s', newUrl);
+      console.groupEnd();
   } else {
       var nodeList = "";
       for ( var h = 0; h < closestBookmarkList.length; h++)
@@ -281,8 +288,12 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
         { url : oldBookmarkUrl });
 
     //log  rollback action
-    console.log("Rolled \"" + bookmarkTreeNode.title+"\" back to");
-    console.log("  " + oldBookmarkUrl);
+    console.group("Rollback update action");
+    console.log("Reset \"%s\"", bookmarkTreeNode.title);
+    console.log('%O', bookmarkTreeNode);
+    console.log("back to");
+    console.log("  %s",  oldBookmarkUrl);
+    console.groupEnd();
   };
 
   notification.show();
