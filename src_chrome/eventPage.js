@@ -77,7 +77,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       chrome.bookmarks.update(
           String(closestBookmarkList[0].id),
           { url : newUrl });
-      showUpdateNotification(title,oldUrl,newUrl);
+      showUndoNotification(closestBookmarkList[0], oldUrl);
   } else {
       var nodeList = "";
       for ( var h = 0; h < closestBookmarkList.length; h++)
@@ -244,5 +244,47 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   //automatically close the notification after 3 seconds
   //todo: allow timeout to be set in a settings page
   window.setTimeout(function (){notification.cancel();},3000);
+}
+
+/*
+ * Notify the user of the bookmark that got updated.
+ *
+ * The notification will automatically disappear after 5 second. If the user
+ * clicks on the notification then the update action will be rolled back.
+ * 
+ *
+ * @param {BookmarkTreeNode} bookmarkTreeNode the updated BookmarkTreeNode
+ * @param {String} oldBookmarkUrl the old bookmark url that got updated
+ *
+ * see also:
+ * http://developer.chrome.com/extensions/notifications.html
+ */
+function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
+  //for now just mention the bookmark title, leave old and new url out.
+  var body = "Update  " +
+    "\"" + bookmarkTreeNode.title + "\"";
+
+  var notification = webkitNotifications.createNotification(
+    '',  //don't use an icon
+    'Click to Undo!',  // notification title
+    body  // notification body text
+  );
+
+  notification.onclick(function(){
+    //undo the bookmark update
+    chrome.bookmarks.update(
+        String(bookmarkTreeNode.id),
+        { url : oldBookmarkUrl });
+
+    //log  rollback action
+    console.log("Rolled \"" + bookmarkTreeNode.title+"\" back to");
+    console.log("  " + oldBookmarkUrl);
+  });
+
+  notification.show();
+
+  //automatically close the notification after 3 seconds
+  //todo: allow timeout to be set in a settings page
+  window.setTimeout(function (){notification.cancel();},5000);
 }
 
