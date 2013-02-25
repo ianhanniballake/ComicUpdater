@@ -280,12 +280,13 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
   var body = "Update  " +
     "\"" + bookmarkTreeNode.title + "\"";
 
-  var notification = webkitNotifications.createNotification(
-    '',  //don't use an icon
+  var notification = createTimedOutNotification(
     'Click to Undo!',  // notification title
-    body  // notification body text
+    body,  // notification body text
+    5000
   );
 
+  //rollback the update if the notification is clicked
   notification.onclick = function(){
     //undo the bookmark update
     chrome.bookmarks.update(
@@ -302,22 +303,36 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
 
     //inform user of the undo action
     var body = 'Rolled back update of "' + bookmarkTreeNode.title + '"';
-    var notification2 = webkitNotifications.createNotification(
-      '',
+    var notification = createTimedOutNotification(
       'Update rolled back',
-      body
+      body,
+      5000
     );
-    notification2.show();
-
-    //automatically close the notification after 5 seconds
-    //todo: allow timeout to be set in a settings page
-    window.setTimeout(function (){notification2.cancel();},5000);
+    notification.show();
   };
 
   notification.show();
 
-  //automatically close the notification after 5 seconds
+}
+
+/*
+ * Todo: write documentation
+ */
+function createTimedOutNotification(title, body, timeout){
+  var notification = webkitNotifications.createNotification(
+    '', //don't use and icon
+    title,
+    body);
+
+  //automatically close the notification 'timeout' milliseconds after it is
+  //dislayed
   //todo: allow timeout to be set in a settings page
-  window.setTimeout(function (){notification.cancel();},5000);
+  notification.ondisplay = function(){
+    window.setTimeout(
+      function(){ notification.cancel()},
+      timeout)
+    }
+  
+  return notification;
 }
 
