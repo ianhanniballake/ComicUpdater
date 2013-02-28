@@ -74,10 +74,26 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var title = closestBookmarkList[0].title;
       var oldUrl = closestBookmarkList[0].url;
       var newUrl = tab.url;
+
       chrome.bookmarks.update(
           String(closestBookmarkList[0].id),
-          { url : newUrl });
-      showUpdateNotification(title,oldUrl,newUrl);
+          { url : newUrl },
+          function callback(updatedBookmark){
+            //log  action
+            console.group('update bookmarkTreeNode');
+            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
+            console.log('%O',closestBookmarkList[0]);
+            console.log('from')
+            console.log('  %s', oldUrl)
+            console.log("to");
+            console.log('  %s', newUrl);
+            console.log('%O', updatedBookmark);
+            console.groupEnd();
+
+            //present undo notification
+            showUndoNotification(updatedBookmark, oldUrl);
+          }
+      );
   } else {
       var nodeList = "";
       for ( var h = 0; h < closestBookmarkList.length; h++)
@@ -244,5 +260,99 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   //automatically close the notification after 3 seconds
   //todo: allow timeout to be set in a settings page
   window.setTimeout(function (){notification.cancel();},3000);
+}
+
+/*
+ * Notify the user of the bookmark that got updated.
+ *
+ * The notification will automatically disappear after 5 second. If the user
+ * clicks on the notification then the update action will be rolled back.
+ * 
+ *
+ * @param {BookmarkTreeNode} bookmarkTreeNode the updated BookmarkTreeNode
+ * @param {String} oldBookmarkUrl the old bookmark url that got updated
+ *
+ * see also:
+ * http://developer.chrome.com/extensions/notifications.html
+ */
+function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
+  //for now just mention the bookmark title, leave old and new url out.
+  var body = "Update  " +
+    "\"" + bookmarkTreeNode.title + "\"";
+
+  var notification = createTimedOutNotification(
+    'Click to Undo!',  // notification title
+    body,  // notification body text
+    5000
+  );
+
+  //rollback the update if the notification is clicked
+  notification.onclick = function(){
+    //immediately close the current notification
+    this.cancel();
+
+    //undo the bookmark update
+    chrome.bookmarks.update(
+        String(bookmarkTreeNode.id),
+        { url : oldBookmarkUrl });
+
+    //log  rollback action
+    console.group("Rollback update action");
+    console.log("Reset the \"%s\" bookmark", bookmarkTreeNode.title);
+    console.log('%O', bookmarkTreeNode);
+    console.log("back to");
+    console.log("  %s",  oldBookmarkUrl);
+    console.groupEnd();
+
+    //inform user of the undo action
+    var body = 'Rolled back update of "' + bookmarkTreeNode.title + '"';
+    var notification = createTimedOutNotification(
+      'Update rolled back',
+      body,
+      5000
+    );
+    notification.show();
+  };
+
+  notification.show();
+
+}
+
+/*
+ * Create a Nofitifaction object that will automatically disappear after a
+ * given time without the need for any user interaction.
+ *
+ * @param {String} title the title of the notification.
+ *
+ * @param {String} body the body of the notification.
+ *
+ * @param {int} timeout the time in ms after which the notification should
+ * automatically disappear once it is displayed.
+ *
+ * @returns {Notification} The returned notification can be displayed using the
+ * show() method. It makes use of the ondisplay attribute to automatically
+ * close it again after the given time has lapsed. 
+ *
+ * See also:
+ * http://www.chromium.org/developers/design-documents/desktop-notifications/api-specification
+ * http://developer.chrome.com/extensions/notifications.html
+ *
+ */
+function createTimedOutNotification(title, body, timeout){
+  var notification = webkitNotifications.createNotification(
+    '', //don't use and icon
+    title,
+    body);
+
+  //automatically close the notification 'timeout' milliseconds after it is
+  //dislayed
+  //todo: allow timeout to be set in a settings page
+  notification.ondisplay = function(){
+    window.setTimeout(
+      function(){ notification.cancel()},
+      timeout)
+    }
+  
+  return notification;
 }
 
