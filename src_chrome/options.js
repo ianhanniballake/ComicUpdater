@@ -17,6 +17,11 @@ function save_options() {
 function restore_options() {
   var matchAlgorithm = localStorage.matchAlgorithm;
   if (!matchAlgorithm) {
+    /*Fixme: this fallback to matchPrefix if nothing is configured is also
+     * explicitly used in eventpage.js.
+     * It would be better to encapsulate this behaviour in a class.
+     * This way the behaviour is centralizing and redundancie is reduced.
+     */
     matchAlgorithm = "matchPrefix";
   }
   var select = document.getElementById("matchAlgorithm");

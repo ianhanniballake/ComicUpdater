@@ -54,8 +54,11 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
         /*
          * compute number of matching characters using the matching algorithm
          * selected by the user in the options page.
+         *
+         * default to matchPrefix if no algorithms has been set yet 
          */
         var matchAlgorithm = localStorage.matchAlgorithm;
+        if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
         switch (matchAlgorithm){
           case "matchPrefix":
             // default to the matchPrefix routine.
