@@ -319,7 +319,24 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
 }
 
 /*
- * Todo: write documentation
+ * Create a Nofitifaction object that will automatically disappear after a
+ * given time without the need for any user interaction.
+ *
+ * @param {String} title the title of the notification.
+ *
+ * @param {String} body the body of the notification.
+ *
+ * @param {int} timeout the time in ms after which the notification should
+ * automatically disappear once it is displayed.
+ *
+ * @returns {Notification} The returned notification can be displayed using the
+ * show() method. It makes use of the ondisplay attribute to automatically
+ * close it again after the given time has lapsed. 
+ *
+ * See also:
+ * http://www.chromium.org/developers/design-documents/desktop-notifications/api-specification
+ * http://developer.chrome.com/extensions/notifications.html
+ *
  */
 function createTimedOutNotification(title, body, timeout){
   var notification = webkitNotifications.createNotification(
