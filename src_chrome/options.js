@@ -17,7 +17,7 @@ function save_options() {
 function restore_options() {
   var matchAlgorithm = localStorage.matchAlgorithm;
   if (!matchAlgorithm) {
-    matchAlgorithm = "matchPredix";
+    matchAlgorithm = "matchPrefix";
   }
   var select = document.getElementById("matchAlgorithm");
   for (var i = 0; i < select.children.length; i++) {
