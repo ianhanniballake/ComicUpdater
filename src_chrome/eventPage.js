@@ -51,10 +51,16 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       if (node.url)
       { // node is a bookmark
         var numMatchingChars = 0;
-        //compute number of matching characters using a match algorithm.
-        // localStorage can be used to select an algorith, but the method will
-        // default to the matchPrefix routine.
-        switch (localStorage.matchAlgorithm){
+        /*
+         * compute number of matching characters using the matching algorithm
+         * selected by the user in the options page.
+         */
+        var matchAlgorithm = localStorage.matchAlgorithm;
+        switch (matchAlgorithm){
+          case "matchPrefix":
+            // default to the matchPrefix routine.
+            numMatchingChars = matchPrefix(node.url,tab.url);
+            break;
           case "matchTillEnd":
             numMatchingChars = matchTillEnd(node.url,tab.url);
             break;
@@ -62,7 +68,8 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
             numMatchingChars = fuzzyMatch(node.url, tab.url);
             break;
           default:
-            numMatchingChars = matchPrefix(node.url,tab.url);
+            console.error('The configured matching algorithm "%s" doesn\'t exists',
+                        matchAlgorithm);
         }
 
 
