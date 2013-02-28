@@ -20,12 +20,18 @@ function restore_options() {
     matchAlgorithm = "matchPrefix";
   }
   var select = document.getElementById("matchAlgorithm");
+  var found = false;
   for (var i = 0; i < select.children.length; i++) {
     var child = select.children[i];
     if (child.value == matchAlgorithm){
+      found=true;
       child.selected = "true";
       break;
     }
+  }
+  if (found == false){
+    //fixme: this error is silent to users! :-s
+    console.error('the configured matching algorithm "%s" is not in the list',matchAlgorithm);
   }
 }
 
