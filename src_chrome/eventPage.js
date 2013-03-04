@@ -50,6 +50,11 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var node = rootNode.children[i];
       if (node.url)
       { // node is a bookmark
+        // immediately skip bookmarks with a different domain name
+        if( ! hasMatchingDomainName(node.url, trab.url)) {
+          continue;
+        }
+
         var numMatchingChars = fuzzyMatch(node.url, tab.url);
 
         if (numMatchingChars > maxMatchingChars)
@@ -270,4 +275,17 @@ function extractDomainName(str){
 
 
   return str;
+}
+
+function hasMatchingDomainName(str1,str2){
+  var domainName1 = extractDomainName(str1);
+  var domainName2 = extractDomainName(str2);
+
+  if( domainName1 == domainName2){
+    return true;
+
+  } else {
+    return false;
+  }
+
 }
