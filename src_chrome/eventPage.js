@@ -246,3 +246,17 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   window.setTimeout(function (){notification.cancel();},3000);
 }
 
+
+function extractDomainName(str){
+  //strip of the protocol
+  var i = str.indexof('://');
+  str = str.slice(i+3);
+  //strip www if present
+  //a lot of sites have www.somesite.com and somesite.com configured as aliases
+  //hence we shoudl treat them as identical
+  if(str.slice(0,3) == "www") {
+    str = str.slice(3);
+  }
+
+  return str
+}
