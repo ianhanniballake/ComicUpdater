@@ -50,6 +50,11 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var node = rootNode.children[i];
       if (node.url)
       { // node is a bookmark
+        // immediately skip bookmarks with a different domain name
+        if( ! hasMatchingDomainName(node.url, tab.url)) {
+          continue;
+        }
+
         var numMatchingChars = fuzzyMatch(node.url, tab.url);
 
         if (numMatchingChars > maxMatchingChars)
@@ -246,3 +251,41 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   window.setTimeout(function (){notification.cancel();},3000);
 }
 
+
+function extractDomainName(str){
+  //strip of the protocol
+  var i = str.indexOf('://');
+  if( i==-1){
+    console.error('the url "%s" contains no protocol specification', str)
+  }
+  str = str.slice(i+3);
+
+  //strip www if present
+  //a lot of sites have www.somesite.com and somesite.com configured as aliases
+  //hence we shoudl treat them as identical
+  if(str.slice(0,3) == "www.") {
+    str = str.slice(3);
+  }
+
+  //strip everything after the domain name
+  i = str.indexOf('/');
+  if ( i >= 0) {
+    str = str.slice(0,i);
+  }
+
+
+  return str;
+}
+
+function hasMatchingDomainName(str1,str2){
+  var domainName1 = extractDomainName(str1);
+  var domainName2 = extractDomainName(str2);
+
+  if( domainName1 == domainName2){
+    return true;
+
+  } else {
+    return false;
+  }
+
+}
