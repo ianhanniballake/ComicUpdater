@@ -51,7 +51,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       if (node.url)
       { // node is a bookmark
         // immediately skip bookmarks with a different domain name
-        if( ! hasMatchingDomainName(node.url, trab.url)) {
+        if( ! hasMatchingDomainName(node.url, tab.url)) {
           continue;
         }
 
