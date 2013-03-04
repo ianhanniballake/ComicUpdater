@@ -249,14 +249,25 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
 
 function extractDomainName(str){
   //strip of the protocol
-  var i = str.indexof('://');
+  var i = str.indexOf('://');
+  if( i==-1){
+    console.error('the url "%s" contains no protocol specification', str)
+  }
   str = str.slice(i+3);
+
   //strip www if present
   //a lot of sites have www.somesite.com and somesite.com configured as aliases
   //hence we shoudl treat them as identical
-  if(str.slice(0,3) == "www") {
+  if(str.slice(0,3) == "www.") {
     str = str.slice(3);
   }
 
-  return str
+  //strip everything after the domain name
+  i = str.indexOf('/');
+  if ( i >= 0) {
+    str = str.slice(0,i);
+  }
+
+
+  return str;
 }
