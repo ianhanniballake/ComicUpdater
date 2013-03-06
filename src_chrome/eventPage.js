@@ -50,7 +50,31 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       var node = rootNode.children[i];
       if (node.url)
       { // node is a bookmark
-        var numMatchingChars = fuzzyMatch(node.url, tab.url);
+        var numMatchingChars = 0;
+        /*
+         * compute number of matching characters using the matching algorithm
+         * selected by the user in the options page.
+         *
+         * default to matchPrefix if no algorithms has been set yet 
+         */
+        var matchAlgorithm = localStorage.matchAlgorithm;
+        if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
+        switch (matchAlgorithm){
+          case "matchPrefix":
+            // default to the matchPrefix routine.
+            numMatchingChars = matchPrefix(node.url,tab.url);
+            break;
+          case "matchTillEnd":
+            numMatchingChars = matchTillEnd(node.url,tab.url);
+            break;
+          case "fuzzyMatch":
+            numMatchingChars = fuzzyMatch(node.url, tab.url);
+            break;
+          default:
+            console.error('The configured matching algorithm "%s" doesn\'t exists',
+                        matchAlgorithm);
+        }
+
 
         if (numMatchingChars > maxMatchingChars)
         {
@@ -107,6 +131,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   }
 
 }
+
 
 /* Match two string with each other.
  *
