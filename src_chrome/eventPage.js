@@ -35,10 +35,70 @@ chrome.browserAction.onClicked.addListener(function(tab){
  *  BookmarkTreeNode: http://developer.chrome.com/extensions/bookmarks.html#type-BookmarkTreeNode
  */
 function updateBookmarkFromTab(tab,bookmarkTreeNode){
+
+  // search for a matching bookmark on the same domain
+  var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
+  var results = findBestMatch(iterator,tab);
+  var maxMatchingChars = results.maxMatchingChars;
+  var closestBookmarkList = results.closestBookmarkList;
+
+  }
+
+  // process match results
+  if (maxMatchingChars < 10)
+    alert("Could not find any bookmark that shares at least 10 characters!");
+  else if (closestBookmarkList.length == 1){
+      var title = closestBookmarkList[0].title;
+      var oldUrl = closestBookmarkList[0].url;
+      var newUrl = tab.url;
+
+      chrome.bookmarks.update(
+          String(closestBookmarkList[0].id),
+          { url : newUrl },
+          function callback(updatedBookmark){
+            //log  action
+            console.group('update bookmarkTreeNode');
+            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
+            console.log('%O',closestBookmarkList[0]);
+            console.log('from')
+            console.log('  %s', oldUrl)
+            console.log("to");
+            console.log('  %s', newUrl);
+            console.log('%O', updatedBookmark);
+            console.groupEnd();
+
+            //present undo notification
+            showUndoNotification(updatedBookmark, oldUrl);
+          }
+      );
+  } else {
+      var nodeList = "";
+      for ( var h = 0; h < closestBookmarkList.length; h++)
+        nodeList = nodeList + "  "
+            + closestBookmarkList[h].url
+            + "\n";
+      alert("Could not find a unique closest bookmark. Found "
+          + closestBookmarkList.length
+          + " closest bookmarks:\n"
+          + nodeList);
+  }
+
+}
+
+/* find the best matching bookmark compared to the current tab.
+ *
+ * @param {BookmarkTreeNode Iterator} An iterator of bookmarks that are to be
+ * matched with the given tab
+ *
+ * @param {Tab} tab The tab that should be mathed against
+ *
+ * @return {MatchResults} a match results object with two properties.
+ *
+ */
+function findBestMatch(iterator,tab){
   var maxMatchingChars = -1;
   var closestBookmarkList = new Array();
 
-  var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
   var node = iterator.next();
   while(node){
     var numMatchingChars = 0;
@@ -78,45 +138,8 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
     node = iterator.next();
   }
-
-  if (maxMatchingChars < 10)
-    alert("Could not find any bookmark that shares at least 10 characters!");
-  else if (closestBookmarkList.length == 1){
-      var title = closestBookmarkList[0].title;
-      var oldUrl = closestBookmarkList[0].url;
-      var newUrl = tab.url;
-
-      chrome.bookmarks.update(
-          String(closestBookmarkList[0].id),
-          { url : newUrl },
-          function callback(updatedBookmark){
-            //log  action
-            console.group('update bookmarkTreeNode');
-            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
-            console.log('%O',closestBookmarkList[0]);
-            console.log('from')
-            console.log('  %s', oldUrl)
-            console.log("to");
-            console.log('  %s', newUrl);
-            console.log('%O', updatedBookmark);
-            console.groupEnd();
-
-            //present undo notification
-            showUndoNotification(updatedBookmark, oldUrl);
-          }
-      );
-  } else {
-      var nodeList = "";
-      for ( var h = 0; h < closestBookmarkList.length; h++)
-        nodeList = nodeList + "  "
-            + closestBookmarkList[h].url
-            + "\n";
-      alert("Could not find a unique closest bookmark. Found "
-          + closestBookmarkList.length
-          + " closest bookmarks:\n"
-          + nodeList);
-  }
-
+  return { "maxMatchingChars": maxMatchingChars,
+           "closestBookmarkList": closestBookmarkList};
 }
 
 /* Construct an iterator object that iterates over for all bookmarks.
