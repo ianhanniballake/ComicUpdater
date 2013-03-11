@@ -38,8 +38,9 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   var maxMatchingChars = -1;
   var closestBookmarkList = new Array();
 
-  var it = new DomainBookmarkIterator(tab, bookmarkTreeNode)
-  for(var node in iterator){
+  var iterator = new DomainBookmarkIterator(tab, bookmarkTreeNode);
+  var node = iterator.next();
+  while(node){
     var numMatchingChars = 0;
     /*
      * compute number of matching characters using the matching algorithm
@@ -74,6 +75,8 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
     {
       closestBookmarkList.push(node);
     }
+
+    node = iterator.next();
   }
 
   if (maxMatchingChars < 10)
@@ -116,44 +119,57 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
 }
 
-/* Construct an iterator that iterates over for all bookmarks under a given
+/* Construct an iterator object that iterates over for all bookmarks under a given
  * BookmarkTreeNode.
+ *
  *
  * @param {BookmarkTreeNode} bookmarkNode a BookmarkTreeNode that serves as the root
  * of the bookmark tree that this iterator will operate on.
+ *
+ * successive invocations of the next() method will iteratively return
+ * bookmarks. When a null is returned that the iterator has been depleted.
+ *
  */
 function BookmarkIterator(bookmarkNode){
   // an  array of unvisited bookmark folders.
-  var folderList = new Array();
+  this.folderList = new Array();
 
-  // serve the bookmarkNode is it is a bookmark itself or add it to the list on
-  // unvisited bookmark folders otherwise
+  // the list of children of the current folder
+  this.currentChildren;
+
+  // index into this.currentChildren of child to return on the following invocation of next();
+  this.currentChildIndex;
+
   if(bookmarkNode.url){
     // node is bookmark
-    yield bookmarkNode
+    this.currentChildren = new Array();
+    this.currentChildren.push(bookmarkNode);
   }else{
-    folderList.push(bookmarkNode)
+    this.currentChildren = bookmarkNode.children;
   }
-  
-  //iteratively consider the first folder in de folderList and iterate over its
-  //contents.
-  while (folderList.length > 0)
-  {
-    var rootNode = folderList.pop();
-    for ( var i = 0; rootNode.children
-        && i < rootNode.children.length; i++)
-    {
-      var node = rootNode.children[i];
-      if (node.url)
-      { // node is a bookmark
-        yield node
+
+  this.next = function(){
+    if(this.currentChildIndex < this.currentChildren.length){
+      var child = this.currentChildren[this.currentChildIndex];
+      this.currentChildIndex ++;
+      if(child.url){
+        return child;
+      }else{
+        this.folderList.push(child)
+        return this.next();
       }
-      else{
-        // Node is a bookmark folder
-        folderList.push(node);
+    }else{
+      if(this.folderList.length >0){
+        var folder = this.folderlist.pop();
+        this.currentChildIndex = 0;
+        this.currentChildren = folder.children;
+        return this.next();
+
+      } else{
+        return null;
       }
+
     }
-  }
 }
 
 /*
@@ -169,13 +185,19 @@ function BookmarkIterator(bookmarkNode){
  *
  */
 function DomainBookmarkIterator(domainName, bookmarkNode){
-  domainName = extractDomainName(domainName);
+  this.domainName = extractDomainName(domainName);
+  this.bookmarkIt = new BookmarkIterator(BookmarkNode);
 
-  var bookmarkIt = new BookmarkIterator(BookmarkNode)
-  for( var bookmark in bookmarkIt){
-    if( domainName == extractDomainName(bookmark.url)){
-      yield bookmark
+  this.next = function(){
+    var bookmark = bookmarkIt.next();
+    while(bookmark){
+      if( domainName == extractDomainName(bookmark.url)){
+        return bookmark;
+      }
+      bookmark = bookmarkIt.next();
     }
+    return null;
+
   }
 }
 
