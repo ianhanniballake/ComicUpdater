@@ -37,11 +37,19 @@ chrome.browserAction.onClicked.addListener(function(tab){
 function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
   // search for a matching bookmark on the same domain
+  console.log('%s','Stage 1: scan for best matching bookmark with same domain');
   var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
   var results = findBestMatch(iterator,tab);
   var maxMatchingChars = results.maxMatchingChars;
   var closestBookmarkList = results.closestBookmarkList;
 
+  // fall back to matching all bookmarks if there is no match on the same domain
+  if(closestBookmarkList.length == 0){
+    console.log('%s','Stage 2: scan whole bookmark tree for best matching bookmark');
+    var iterator = new BookmarkIterator(bookmarkTreeNode);
+    results = findBestMatch(iterator,tab);
+    maxMatchingChars = results.maxMatchingChars;
+    closestBookmarkList = results.closestBookmarkList;
   }
 
   // process match results
