@@ -38,7 +38,7 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   var maxMatchingChars = -1;
   var closestBookmarkList = new Array();
 
-  var iterator = new DomainBookmarkIterator(tab, bookmarkTreeNode);
+  var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
   var node = iterator.next();
   while(node){
     var numMatchingChars = 0;
@@ -119,34 +119,27 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
 }
 
-/* Construct an iterator object that iterates over for all bookmarks under a given
- * BookmarkTreeNode.
+/* Construct an iterator object that iterates over for all bookmarks.
  *
  *
- * @param {BookmarkTreeNode} bookmarkNode a BookmarkTreeNode that serves as the root
- * of the bookmark tree that this iterator will operate on.
+ * @param {BookmarkTreeNode Array} bookmarkNodes an array of BookmarkTreeNode
+ * objects that serves as the roots of the bookmark trees that this iterator will
+ * operate on.
  *
  * successive invocations of the next() method will iteratively return
  * bookmarks. When a null is returned that the iterator has been depleted.
  *
  */
-function BookmarkIterator(bookmarkNode){
+function BookmarkIterator(bookmarkNodes){
   // an  array of unvisited bookmark folders.
   this.folderList = new Array();
 
-  // the list of children of the current folder
-  this.currentChildren;
+  // the array of children of the current folder
+  this.currentChildren = bookmarkNodes;
 
   // index into this.currentChildren of child to return on the following invocation of next();
-  this.currentChildIndex;
+  this.currentChildIndex = 0;
 
-  if(bookmarkNode.url){
-    // node is bookmark
-    this.currentChildren = new Array();
-    this.currentChildren.push(bookmarkNode);
-  }else{
-    this.currentChildren = bookmarkNode.children;
-  }
 
   this.next = function(){
     if(this.currentChildIndex < this.currentChildren.length){
@@ -160,7 +153,7 @@ function BookmarkIterator(bookmarkNode){
       }
     }else{
       if(this.folderList.length >0){
-        var folder = this.folderlist.pop();
+        var folder = this.folderList.pop();
         this.currentChildIndex = 0;
         this.currentChildren = folder.children;
         return this.next();
@@ -170,6 +163,7 @@ function BookmarkIterator(bookmarkNode){
       }
 
     }
+  }
 }
 
 /*
@@ -186,15 +180,15 @@ function BookmarkIterator(bookmarkNode){
  */
 function DomainBookmarkIterator(domainName, bookmarkNode){
   this.domainName = extractDomainName(domainName);
-  this.bookmarkIt = new BookmarkIterator(BookmarkNode);
+  this.bookmarkIt = new BookmarkIterator(bookmarkNode);
 
   this.next = function(){
-    var bookmark = bookmarkIt.next();
+    var bookmark = this.bookmarkIt.next();
     while(bookmark){
-      if( domainName == extractDomainName(bookmark.url)){
+      if( this.domainName == extractDomainName(bookmark.url)){
         return bookmark;
       }
-      bookmark = bookmarkIt.next();
+      bookmark = this.bookmarkIt.next();
     }
     return null;
 
