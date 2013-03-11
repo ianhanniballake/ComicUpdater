@@ -35,67 +35,47 @@ chrome.browserAction.onClicked.addListener(function(tab){
  *  BookmarkTreeNode: http://developer.chrome.com/extensions/bookmarks.html#type-BookmarkTreeNode
  */
 function updateBookmarkFromTab(tab,bookmarkTreeNode){
-  var folderList = new Array();
   var maxMatchingChars = -1;
   var closestBookmarkList = new Array();
-  for ( var i = 0; i < bookmarkTreeNode.length; i++) {
-    folderList.push(bookmarkTreeNode[i]);
-  }
-  while (folderList.length > 0)
-  {
-    var rootNode = folderList.pop();
-    for ( var i = 0; rootNode.children
-        && i < rootNode.children.length; i++)
+
+  var it = new DomainBookmarkIterator(tab, bookmarkTreeNode)
+  for(var node in iterator){
+    var numMatchingChars = 0;
+    /*
+     * compute number of matching characters using the matching algorithm
+     * selected by the user in the options page.
+     *
+     * default to matchPrefix if no algorithms has been set yet 
+     */
+    var matchAlgorithm = localStorage.matchAlgorithm;
+    if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
+    switch (matchAlgorithm){
+      case "matchPrefix":
+        // default to the matchPrefix routine.
+        numMatchingChars = matchPrefix(node.url,tab.url);
+        break;
+      case "matchTillEnd":
+        numMatchingChars = matchTillEnd(node.url,tab.url);
+        break;
+      case "fuzzyMatch":
+        numMatchingChars = fuzzyMatch(node.url, tab.url);
+        break;
+      default:
+        console.error('The configured matching algorithm "%s" doesn\'t exists',
+                    matchAlgorithm);
+    }
+
+    if (numMatchingChars > maxMatchingChars)
     {
-      var node = rootNode.children[i];
-      if (node.url)
-      { // node is a bookmark
-        // immediately skip bookmarks with a different domain name
-        if( ! hasMatchingDomainName(node.url, tab.url)) {
-          continue;
-        }
-
-        var numMatchingChars = 0;
-        /*
-         * compute number of matching characters using the matching algorithm
-         * selected by the user in the options page.
-         *
-         * default to matchPrefix if no algorithms has been set yet 
-         */
-        var matchAlgorithm = localStorage.matchAlgorithm;
-        if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
-        switch (matchAlgorithm){
-          case "matchPrefix":
-            // default to the matchPrefix routine.
-            numMatchingChars = matchPrefix(node.url,tab.url);
-            break;
-          case "matchTillEnd":
-            numMatchingChars = matchTillEnd(node.url,tab.url);
-            break;
-          case "fuzzyMatch":
-            numMatchingChars = fuzzyMatch(node.url, tab.url);
-            break;
-          default:
-            console.error('The configured matching algorithm "%s" doesn\'t exists',
-                        matchAlgorithm);
-        }
-
-        if (numMatchingChars > maxMatchingChars)
-        {
-          closestBookmarkList = new Array();
-          maxMatchingChars = numMatchingChars;
-        }
-        if (numMatchingChars >= maxMatchingChars)
-        {
-          closestBookmarkList.push(node);
-        }
-      }
-      else{
-        // Node is a bookmark folder
-        folderList.push(node);
-      }
+      closestBookmarkList = new Array();
+      maxMatchingChars = numMatchingChars;
+    }
+    if (numMatchingChars >= maxMatchingChars)
+    {
+      closestBookmarkList.push(node);
     }
   }
+
   if (maxMatchingChars < 10)
     alert("Could not find any bookmark that shares at least 10 characters!");
   else if (closestBookmarkList.length == 1){
@@ -136,6 +116,68 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
 }
 
+/* Construct an iterator that iterates over for all bookmarks under a given
+ * BookmarkTreeNode.
+ *
+ * @param {BookmarkTreeNode} bookmarkNode a BookmarkTreeNode that serves as the root
+ * of the bookmark tree that this iterator will operate on.
+ */
+function BookmarkIterator(bookmarkNode){
+  // an  array of unvisited bookmark folders.
+  var folderList = new Array();
+
+  // serve the bookmarkNode is it is a bookmark itself or add it to the list on
+  // unvisited bookmark folders otherwise
+  if(bookmarkNode.url){
+    // node is bookmark
+    yield bookmarkNode
+  }else{
+    folderList.push(bookmarkNode)
+  }
+  
+  //iteratively consider the first folder in de folderList and iterate over its
+  //contents.
+  while (folderList.length > 0)
+  {
+    var rootNode = folderList.pop();
+    for ( var i = 0; rootNode.children
+        && i < rootNode.children.length; i++)
+    {
+      var node = rootNode.children[i];
+      if (node.url)
+      { // node is a bookmark
+        yield node
+      }
+      else{
+        // Node is a bookmark folder
+        folderList.push(node);
+      }
+    }
+  }
+}
+
+/*
+ * Construct an iterator that iterates over all bookmarks on a given domain.
+ *
+ * A domain is identified by an url and a bookmark is on that domain if the
+ * extractDomainName() function is identical for both.
+ *
+ * @param {String} domainName url of the domain of interest.
+ *
+ * @param {BookmarkTreeNode} bookmarkNode a BookmarkTreeNode that serves as the root
+ * of the bookmark tree that this iterator will operate on.
+ *
+ */
+function DomainBookmarkIterator(domainName, bookmarkNode){
+  domainName = extractDomainName(domainName);
+
+  var bookmarkIt = new BookmarkIterator(BookmarkNode)
+  for( var bookmark in bookmarkIt){
+    if( domainName == extractDomainName(bookmark.url)){
+      yield bookmark
+    }
+  }
+}
 
 /* Match two string with each other.
  *
@@ -357,7 +399,7 @@ function showUndoNotification(bookmarkTreeNode, oldBookmarkUrl){
   //rollback the update if the notification is clicked
   notification.onclick = function(){
     //immediately close the current notification
-    this.cancel();
+    notification.cancel();
 
     //undo the bookmark update
     chrome.bookmarks.update(
