@@ -83,10 +83,19 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
         nodeList = nodeList + "  "
             + results.matchingBookmarkList[h].url
             + "\n";
+
       alert("Could not find a unique closest bookmark. Found "
           + results.matchingBookmarkList.length
           + " closest bookmarks with " + results.matchScore + " matches :\n"
           + nodeList);
+      //log  action
+      console.group('Non-unique best matches');
+      console.log(tab.url);
+      console.log('Number of matching characters: %i',results.matchScore);
+      for(var h=0; h< results.matchingBookmarkList.length; h++){
+        console.log("%s",results.matchingBookmarkList[h].url);
+      }
+      console.groupEnd();
   }
 
 }
