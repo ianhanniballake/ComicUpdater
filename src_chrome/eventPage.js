@@ -229,7 +229,6 @@ function DomainBookmarkIterator(domainName, bookmarkNodes){
       bookmark = this.bookmarkIt.next();
     }
     return null;
-
   }
 }
 
@@ -388,6 +387,11 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
 }
 
 
+/*
+ * Todo: write function doc
+ *
+ * @param {String} str
+ */
 function extractDomainName(str){
   //strip of the protocol
   var i = str.indexOf('://');
@@ -413,6 +417,13 @@ function extractDomainName(str){
   return str;
 }
 
+/*
+ * Todo: write function doc
+ *
+ * @param {String} str1
+ * @param {String} str2
+ *
+ */
 function hasMatchingDomainName(str1,str2){
   var domainName1 = extractDomainName(str1);
   var domainName2 = extractDomainName(str2);
