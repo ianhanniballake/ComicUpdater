@@ -40,34 +40,32 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
   console.log('%s','Stage 1: scan for best matching bookmark with same domain');
   var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
   var results = findBestMatch(iterator,tab);
-  var maxMatchingChars = results.maxMatchingChars;
-  var closestBookmarkList = results.closestBookmarkList;
 
   // fall back to matching all bookmarks if there is no match on the same domain
-  if(closestBookmarkList.length == 0){
+  if(results.matchingBookmarkList.length == 0){
+    console.log('%s','         No matching bookmarks found');
     console.log('%s','Stage 2: scan whole bookmark tree for best matching bookmark');
     var iterator = new BookmarkIterator(bookmarkTreeNode);
     results = findBestMatch(iterator,tab);
-    maxMatchingChars = results.maxMatchingChars;
-    closestBookmarkList = results.closestBookmarkList;
   }
 
   // process match results
-  if (maxMatchingChars < 10)
+  if (results.matchScore < 10){
     alert("Could not find any bookmark that shares at least 10 characters!");
-  else if (closestBookmarkList.length == 1){
-      var title = closestBookmarkList[0].title;
-      var oldUrl = closestBookmarkList[0].url;
+  }
+  else if (results.matchingBookmarkList.length == 1){
+      var title = results.matchingBookmarkList[0].title;
+      var oldUrl = results.matchingBookmarkList[0].url;
       var newUrl = tab.url;
 
       chrome.bookmarks.update(
-          String(closestBookmarkList[0].id),
+          String(results.matchingBookmarkList[0].id),
           { url : newUrl },
           function callback(updatedBookmark){
             //log  action
             console.group('update bookmarkTreeNode');
-            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
-            console.log('%O',closestBookmarkList[0]);
+            console.log('updating bookmark "%s"',  results.matchingBookmarkList[0].title);
+            console.log('%O',results.matchingBookmarkList[0]);
             console.log('from')
             console.log('  %s', oldUrl)
             console.log("to");
@@ -81,13 +79,13 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       );
   } else {
       var nodeList = "";
-      for ( var h = 0; h < closestBookmarkList.length; h++)
+      for ( var h = 0; h < results.matchingBookmarkList.length; h++)
         nodeList = nodeList + "  "
-            + closestBookmarkList[h].url
+            + results.matchingBookmarkList[h].url
             + "\n";
       alert("Could not find a unique closest bookmark. Found "
-          + closestBookmarkList.length
-          + " closest bookmarks:\n"
+          + results.matchingBookmarkList.length
+          + " closest bookmarks with " + results.matchScore + " matches :\n"
           + nodeList);
   }
 
@@ -95,12 +93,17 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
 
 /* find the best matching bookmark compared to the current tab.
  *
- * @param {BookmarkTreeNode Iterator} An iterator of bookmarks that are to be
+ * The matching algorithm used is the one configured by the user in the options
+ * page.
+ *
+ * @param {BookmarkIterator} An iterator of bookmarks that are to be
  * matched with the given tab
  *
  * @param {Tab} tab The tab that should be mathed against
  *
- * @return {MatchResults} a match results object with two properties.
+ * @return {matchScore, matchingBookmarkList} t match results object with two
+ * properties. The number of matching characters, i.e. the matchScore and a
+ * list of bookmarks corresponding the matchScore
  *
  */
 function findBestMatch(iterator,tab){
@@ -146,8 +149,8 @@ function findBestMatch(iterator,tab){
 
     node = iterator.next();
   }
-  return { "maxMatchingChars": maxMatchingChars,
-           "closestBookmarkList": closestBookmarkList};
+  return { matchScore: maxMatchingChars,
+           matchingBookmarkList: closestBookmarkList};
 }
 
 /* Construct an iterator object that iterates over for all bookmarks.
