@@ -157,7 +157,7 @@ function findBestMatch(iterator,tab){
  *
  *
  * @param {BookmarkTreeNode Array} bookmarkNodes an array of BookmarkTreeNode
- * objects that serves as the roots of the bookmark trees that this iterator will
+ * objects that serve as the roots of the bookmark trees that this iterator will
  * operate on.
  *
  * successive invocations of the next() method will iteratively return
@@ -208,13 +208,17 @@ function BookmarkIterator(bookmarkNodes){
  *
  * @param {String} domainName url of the domain of interest.
  *
- * @param {BookmarkTreeNode} bookmarkNode a BookmarkTreeNode that serves as the root
- * of the bookmark tree that this iterator will operate on.
+ * @param {BookmarkTreeNode Array} bookmarkNodes an Array of BookmarkTreeNode
+ * objects that serve as the roots of the bookmark trees that this iterator will
+ * operate on.
+ *
+ * successive invocations of the next() method will iteratively return
+ * bookmarks. When a null is returned that the iterator has been depleted.
  *
  */
-function DomainBookmarkIterator(domainName, bookmarkNode){
+function DomainBookmarkIterator(domainName, bookmarkNodes){
   this.domainName = extractDomainName(domainName);
-  this.bookmarkIt = new BookmarkIterator(bookmarkNode);
+  this.bookmarkIt = new BookmarkIterator(bookmarkNodes);
 
   this.next = function(){
     var bookmark = this.bookmarkIt.next();
