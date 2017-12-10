@@ -2,7 +2,7 @@
   "name": "Comic Updater",
   "description": "A button that replaces the bookmark location that shares the most characters with the current tab with the current tab's location.",
   "version": "1.0",
-  "manifest_version": 3,
+  "manifest_version": 2,
   "background": {
     "scripts": ["eventPage.js"]
   },
