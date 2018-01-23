@@ -35,78 +35,37 @@ chrome.browserAction.onClicked.addListener(function(tab){
  *  BookmarkTreeNode: http://developer.chrome.com/extensions/bookmarks.html#type-BookmarkTreeNode
  */
 function updateBookmarkFromTab(tab,bookmarkTreeNode){
-  var folderList = new Array();
-  var maxMatchingChars = -1;
-  var closestBookmarkList = new Array();
-  for ( var i = 0; i < bookmarkTreeNode.length; i++) {
-    folderList.push(bookmarkTreeNode[i]);
-  }
-  while (folderList.length > 0)
-  {
-    var rootNode = folderList.pop();
-    for ( var i = 0; rootNode.children
-        && i < rootNode.children.length; i++)
-    {
-      var node = rootNode.children[i];
-      if (node.url)
-      { // node is a bookmark
-        var numMatchingChars = 0;
-        /*
-         * compute number of matching characters using the matching algorithm
-         * selected by the user in the options page.
-         *
-         * default to matchPrefix if no algorithms has been set yet 
-         */
-        var matchAlgorithm = localStorage.matchAlgorithm;
-        if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
-        switch (matchAlgorithm){
-          case "matchPrefix":
-            // default to the matchPrefix routine.
-            numMatchingChars = matchPrefix(node.url,tab.url);
-            break;
-          case "matchTillEnd":
-            numMatchingChars = matchTillEnd(node.url,tab.url);
-            break;
-          case "fuzzyMatch":
-            numMatchingChars = fuzzyMatch(node.url, tab.url);
-            break;
-          default:
-            console.error('The configured matching algorithm "%s" doesn\'t exists',
-                        matchAlgorithm);
-        }
 
+  // search for a matching bookmark on the same domain
+  console.log('%s','Stage 1: scan for best matching bookmark with same domain');
+  var iterator = new DomainBookmarkIterator(tab.url, bookmarkTreeNode);
+  var results = findBestMatch(iterator,tab);
 
-        if (numMatchingChars > maxMatchingChars)
-        {
-          closestBookmarkList = new Array();
-          maxMatchingChars = numMatchingChars;
-        }
-        if (numMatchingChars >= maxMatchingChars)
-        {
-          closestBookmarkList.push(node);
-        }
-      }
-      else{
-        // Node is a bookmark folder
-        folderList.push(node);
-      }
-    }
+  // fall back to matching all bookmarks if there is no match on the same domain
+  if(results.matchingBookmarkList.length == 0){
+    console.log('%s','         No matching bookmarks found');
+    console.log('%s','Stage 2: scan whole bookmark tree for best matching bookmark');
+    var iterator = new BookmarkIterator(bookmarkTreeNode);
+    results = findBestMatch(iterator,tab);
   }
-  if (maxMatchingChars < 10)
+
+  // process match results
+  if (results.matchScore < 10){
     alert("Could not find any bookmark that shares at least 10 characters!");
-  else if (closestBookmarkList.length == 1){
-      var title = closestBookmarkList[0].title;
-      var oldUrl = closestBookmarkList[0].url;
+  }
+  else if (results.matchingBookmarkList.length == 1){
+      var title = results.matchingBookmarkList[0].title;
+      var oldUrl = results.matchingBookmarkList[0].url;
       var newUrl = tab.url;
 
       chrome.bookmarks.update(
-          String(closestBookmarkList[0].id),
+          String(results.matchingBookmarkList[0].id),
           { url : newUrl },
           function callback(updatedBookmark){
             //log  action
             console.group('update bookmarkTreeNode');
-            console.log('updating bookmark "%s"',  closestBookmarkList[0].title);
-            console.log('%O',closestBookmarkList[0]);
+            console.log('updating bookmark "%s"',  results.matchingBookmarkList[0].title);
+            console.log('%O',results.matchingBookmarkList[0]);
             console.log('from')
             console.log('  %s', oldUrl)
             console.log("to");
@@ -120,18 +79,167 @@ function updateBookmarkFromTab(tab,bookmarkTreeNode){
       );
   } else {
       var nodeList = "";
-      for ( var h = 0; h < closestBookmarkList.length; h++)
+      for ( var h = 0; h < results.matchingBookmarkList.length; h++)
         nodeList = nodeList + "  "
-            + closestBookmarkList[h].url
+            + results.matchingBookmarkList[h].url
             + "\n";
+
       alert("Could not find a unique closest bookmark. Found "
-          + closestBookmarkList.length
-          + " closest bookmarks:\n"
+          + results.matchingBookmarkList.length
+          + " closest bookmarks with " + results.matchScore + " matches :\n"
           + nodeList);
+      //log  action
+      console.group('Non-unique best matches');
+      console.log(tab.url);
+      console.log('Number of matching characters: %i',results.matchScore);
+      for(var h=0; h< results.matchingBookmarkList.length; h++){
+        console.log("%s",results.matchingBookmarkList[h].url);
+      }
+      console.groupEnd();
   }
 
 }
 
+/* find the best matching bookmark compared to the current tab.
+ *
+ * The matching algorithm used is the one configured by the user in the options
+ * page.
+ *
+ * @param {BookmarkIterator} An iterator of bookmarks that are to be
+ * matched with the given tab
+ *
+ * @param {Tab} tab The tab that should be mathed against
+ *
+ * @return {matchScore, matchingBookmarkList} t match results object with two
+ * properties. The number of matching characters, i.e. the matchScore and a
+ * list of bookmarks corresponding the matchScore
+ *
+ */
+function findBestMatch(iterator,tab){
+  var maxMatchingChars = -1;
+  var closestBookmarkList = new Array();
+
+  var node = iterator.next();
+  while(node){
+    var numMatchingChars = 0;
+    /*
+     * compute number of matching characters using the matching algorithm
+     * selected by the user in the options page.
+     *
+     * default to matchPrefix if no algorithms has been set yet 
+     */
+    var matchAlgorithm = localStorage.matchAlgorithm;
+    if( matchAlgorithm == undefined) { matchAlgorithm = "matchPrefix"}
+    switch (matchAlgorithm){
+      case "matchPrefix":
+        // default to the matchPrefix routine.
+        numMatchingChars = matchPrefix(node.url,tab.url);
+        break;
+      case "matchTillEnd":
+        numMatchingChars = matchTillEnd(node.url,tab.url);
+        break;
+      case "fuzzyMatch":
+        numMatchingChars = fuzzyMatch(node.url, tab.url);
+        break;
+      default:
+        console.error('The configured matching algorithm "%s" doesn\'t exists',
+                    matchAlgorithm);
+    }
+
+    if (numMatchingChars > maxMatchingChars)
+    {
+      closestBookmarkList = new Array();
+      maxMatchingChars = numMatchingChars;
+    }
+    if (numMatchingChars >= maxMatchingChars)
+    {
+      closestBookmarkList.push(node);
+    }
+
+    node = iterator.next();
+  }
+  return { matchScore: maxMatchingChars,
+           matchingBookmarkList: closestBookmarkList};
+}
+
+/* Construct an iterator object that iterates over for all bookmarks.
+ *
+ *
+ * @param {BookmarkTreeNode Array} bookmarkNodes an array of BookmarkTreeNode
+ * objects that serve as the roots of the bookmark trees that this iterator will
+ * operate on.
+ *
+ * successive invocations of the next() method will iteratively return
+ * bookmarks. When a null is returned that the iterator has been depleted.
+ *
+ */
+function BookmarkIterator(bookmarkNodes){
+  // an  array of unvisited bookmark folders.
+  this.folderList = new Array();
+
+  // the array of children of the current folder
+  this.currentChildren = bookmarkNodes;
+
+  // index into this.currentChildren of child to return on the following invocation of next();
+  this.currentChildIndex = 0;
+
+
+  this.next = function(){
+    if(this.currentChildIndex < this.currentChildren.length){
+      var child = this.currentChildren[this.currentChildIndex];
+      this.currentChildIndex ++;
+      if(child.url){
+        return child;
+      }else{
+        this.folderList.push(child)
+        return this.next();
+      }
+    }else{
+      if(this.folderList.length >0){
+        var folder = this.folderList.pop();
+        this.currentChildIndex = 0;
+        this.currentChildren = folder.children;
+        return this.next();
+
+      } else{
+        return null;
+      }
+
+    }
+  }
+}
+
+/*
+ * Construct an iterator that iterates over all bookmarks on a given domain.
+ *
+ * A domain is identified by an url and a bookmark is on that domain if the
+ * extractDomainName() function is identical for both.
+ *
+ * @param {String} domainName url of the domain of interest.
+ *
+ * @param {BookmarkTreeNode Array} bookmarkNodes an Array of BookmarkTreeNode
+ * objects that serve as the roots of the bookmark trees that this iterator will
+ * operate on.
+ *
+ * successive invocations of the next() method will iteratively return
+ * bookmarks. When a null is returned that the iterator has been depleted.
+ *
+ */
+function DomainBookmarkIterator(domainName, bookmarkNodes){
+  this.domainName = extractDomainName(domainName);
+  this.bookmarkIt = new BookmarkIterator(bookmarkNodes);
+
+  this.next = function(){
+    var bookmark = this.bookmarkIt.next();
+    while(bookmark){
+      if( this.domainName == extractDomainName(bookmark.url)){
+        return bookmark;
+      }
+      bookmark = this.bookmarkIt.next();
+    }
+    return null;
+  }
+}
 
 /* Match two string with each other.
  *
@@ -285,6 +393,57 @@ function showUpdateNotification(bookmarkTitle, oldBookmarkUrl, newBookmarkUrl){
   //automatically close the notification after 3 seconds
   //todo: allow timeout to be set in a settings page
   window.setTimeout(function (){notification.cancel();},3000);
+}
+
+
+/*
+ * Todo: write function doc
+ *
+ * @param {String} str
+ */
+function extractDomainName(str){
+  //strip of the protocol
+  var i = str.indexOf('://');
+  if( i==-1){
+    console.error('the url "%s" contains no protocol specification', str)
+  }
+  str = str.slice(i+3);
+
+  //strip www if present
+  //a lot of sites have www.somesite.com and somesite.com configured as aliases
+  //hence we shoudl treat them as identical
+  if(str.slice(0,3) == "www.") {
+    str = str.slice(3);
+  }
+
+  //strip everything after the domain name
+  i = str.indexOf('/');
+  if ( i >= 0) {
+    str = str.slice(0,i);
+  }
+
+
+  return str;
+}
+
+/*
+ * Todo: write function doc
+ *
+ * @param {String} str1
+ * @param {String} str2
+ *
+ */
+function hasMatchingDomainName(str1,str2){
+  var domainName1 = extractDomainName(str1);
+  var domainName2 = extractDomainName(str2);
+
+  if( domainName1 == domainName2){
+    return true;
+
+  } else {
+    return false;
+  }
+
 }
 
 /*
